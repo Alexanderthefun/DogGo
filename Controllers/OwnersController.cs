@@ -36,19 +36,20 @@ namespace DogGo.Controllers
 
         public ActionResult Details(int id)
         {
-            ProfileViewModel vm = new ProfileViewModel();
             Owner owner = _ownerRepo.GetOwnerById(id);
-            List<Walker> walkers = new List<Walker>();
-            List<Dog> dogs = new List<Dog>();
-            vm.Owner = owner;
-            vm.Walkers = _walkerRepo.GetAllWalkers();
-            vm.Dogs = _dogRepo.GetAllDogs();
-            if (owner == null) 
+            List<Dog> dogs = _dogRepo.GetDogsByOwnerId(owner.Id);
+            List<Walker> walkers = _walkerRepo.GetWalkersInNeighborhood(owner.NeighborhoodId);
+
+            ProfileViewModel vm = new ProfileViewModel()
             {
-                return NotFound();
-            }
+                Owner = owner,
+                Dogs = dogs,
+                Walkers = walkers
+            };
+
             return View(vm);
         }
+
         // GET: Owners/Create
         public ActionResult Create()
         {
@@ -83,7 +84,7 @@ namespace DogGo.Controllers
         {
             Owner owner = _ownerRepo.GetOwnerById(id);
             List<Neighborhood> neighborhoods = _neighborhoodRepo.GetAll();
-            ProfileViewModel vm = new ProfileViewModel()
+            OwnerFormViewModel vm = new OwnerFormViewModel()
             {
                 Owner = owner,
                 Neighborhoods = neighborhoods
@@ -97,6 +98,7 @@ namespace DogGo.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        //POST
         public ActionResult Edit(int id, Owner owner)
         {
             try
@@ -104,7 +106,7 @@ namespace DogGo.Controllers
                 _ownerRepo.UpdateOwner(owner);
                 return RedirectToAction("Index");
             }
-            catch(Exception)
+            catch(Exception ex)
             {
                 return View(owner);
             }
